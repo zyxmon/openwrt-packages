@@ -28,7 +28,7 @@ HOST_BUILD_PARALLEL:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/Python-$(PKG_VERSION)
 HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/Python-$(PKG_VERSION)
 
-PKG_BUILD_DEPENDS:=python/host
+PKG_BUILD_DEPENDS:=libbz2/host python/host
 
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
@@ -221,6 +221,7 @@ HOST_CONFIGURE_ARGS+= \
 	--without-cxx-main \
 	--without-pymalloc \
 	--with-threads \
+	--with-system-expat=$(STAGING_DIR_HOST) \
 	--prefix=$(STAGING_DIR_HOST) \
 	--with-ensurepip=upgrade \
 	CONFIG_SITE= \

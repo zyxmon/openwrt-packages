@@ -8,9 +8,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=gnunet
-PKG_SOURCE_VERSION:=36060
+PKG_SOURCE_VERSION:=36366
 PKG_VERSION:=0.10.1-svn$(PKG_SOURCE_VERSION)
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 # ToDo:
 #  - break-out {peer,name,data}store for each backend
@@ -26,12 +26,15 @@ PKG_LICENSE_FILES:=COPYING
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 
 PKG_BUILD_PARALLEL:=1
-PKG_FIXUP:=autoreconf
+PKG_FIXUP:=gettext-version
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
 
 CONFIGURE_ARGS+= \
+	--with-libiconv-prefix="$(ICONV_PREFIX)" \
+	--with-libintl-prefix="$(INTL_PREFIX)" \
 	--with-ltdl \
 	$(if $(CONFIG_PACKAGE_$(PKG_NAME)-mysql),--with-mysql="$(STAGING_DIR)/usr",--without-mysql) \
 	$(if $(CONFIG_PACKAGE_$(PKG_NAME)-pgsql),--with-postgresql="$(STAGING_DIR)/usr/bin/pg_config",--without-postgresql) \
@@ -56,7 +59,7 @@ define Package/gnunet
 $(call Package/gnunet/Default)
   TITLE+= - a peer-to-peer framework focusing on security
   DEPENDS:=+ca-certificates +libgnurl +libgnutls +libidn +libltdl \
-           +libmicrohttpd +libunistring +librt
+           +libmicrohttpd +libunistring +librt $(ICONV_DEPENDS) $(INTL_DEPENDS)
   USERID:=gnunet=400:gnunet=400
   MENU:=1
 endef
@@ -162,8 +165,12 @@ define Package/gnunet/install
 	done )
 
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/gnunet/hellos/* $(1)/usr/share/gnunet/hellos
-	$(INSTALL_DIR) $(1)/etc/init.d/
+	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/gnunet.init $(1)/etc/init.d/gnunet
+	$(INSTALL_DIR) $(1)/lib/upgrade/keep.d
+	$(INSTALL_DATA) ./files/gnunet.upgrade $(1)/lib/upgrade/keep.d/gnunet
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/gnunet.defaults $(1)/etc/uci-defaults/gnunet
 endef
 
 define Build/InstallDev
@@ -186,8 +193,8 @@ PLUGIN_transport-http_client:=transport_http_client transport_https_client
 DEPENDS_transport-http_server:=+libmicrohttpd
 PLUGIN_transport-http_server:=transport_http_server transport_https_server
 
-PLUGIN_transport-wifi:=transport_wlan
-LIBEXEC_transport-wifi:=helper-transport-wlan
+PLUGIN_transport-wlan:=transport_wlan
+LIBEXEC_transport-wlan:=helper-transport-wlan
 
 DEPENDS_experiments:=+libglpk
 PLUGIN_experiments:=ats_mlp ats_ril
@@ -232,7 +239,7 @@ LIBEXEC_transport-bluetooth:=helper-transport-bluetooth
 DEPENDS_utils:=+certtool +openssl-util
 BIN_utils:=gns-proxy-setup-ca transport-certificate-creation
 
-DEPENDS_vpn:=+kmod-tun
+DEPENDS_vpn:=+kmod-tun +iptables
 BIN_vpn:=vpn
 LIB_vpn:=tun vpn
 LIBEXEC_vpn:=daemon-exit daemon-pt helper-exit helper-vpn service-vpn

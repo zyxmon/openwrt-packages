@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=netperf
-PKG_VERSION:=2.6.0
+PKG_VERSION:=2.7.0
 PKG_RELEASE:=1
 PKG_LICENSE:=Custom
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=ftp://ftp.netperf.org/netperf/
-PKG_MD5SUM:=9654ffdfd4c4f2c93ce3733cd9ed9236
+PKG_MD5SUM:=ad1c5342d61f297c417a93133aeba65a
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -25,6 +25,8 @@ define Package/netperf
   URL:=http://www.netperf.org/
   MAINTAINER:=Toke Høiland-Jørgensen <toke@toke.dk>
 endef
+
+TARGET_CFLAGS+=-std=gnu89
 
 CONFIGURE_ARGS += --enable-demo
 
